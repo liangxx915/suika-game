@@ -20,15 +20,15 @@
 
     <section class="hud" aria-label="游戏信息">
       <div class="score-box"><span>得分</span><strong id="score">0</strong></div>
-      <div class="next-box"><span>下一个</span><canvas id="next" width="64" height="64" aria-label="下一个水果"></canvas></div>
+      <div class="next-box"><span>下一个</span><canvas id="next" width="64" height="64" aria-label="下一个奶蛙"></canvas></div>
       <p class="tip">轻点投放，<br>按住移动后松手投放。</p>
     </section>
 
     <section class="board-wrap" aria-label="游戏区域">
-      <canvas id="game" width="420" height="610" aria-label="合成大西瓜游戏画面"></canvas>
+      <canvas id="game" width="420" height="610" aria-label="奶蛙合成游戏画面"></canvas>
       <div id="game-over" class="overlay" hidden>
         <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="over-title">
-          <div class="dialog-fruit" aria-hidden="true">🍉</div>
+          <img class="dialog-fruit" src="./assets/naiwa/laugh-head.png" alt="">
           <h2 id="over-title">装不下啦！</h2>
           <p>本局得分 <strong id="final-score">0</strong></p>
           <button id="play-again" type="button">再玩一次</button>
@@ -36,7 +36,7 @@
       </div>
     </section>
 
-    <p class="footer-note">两个相同水果相碰，就会变成更大的水果。</p>
+    <p class="footer-note">两个相同奶蛙相碰，就会变成更大的奶蛙。</p>
   </main>
 </body>
 </html>

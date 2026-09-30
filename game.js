@@ -1,20 +1,20 @@
 (() => {
   "use strict";
 
-  // 后续换图片时，只需给对应等级增加 image 路径，并把图片放进项目目录。
-  // 没有 image 的等级会继续使用下方的 Canvas 卡通画法。
+  // 奶蛙素材放在 assets/naiwa；每个等级仍使用原有半径与合成分数。
+  // 十一种表情对应十一个等级，图片加载失败时保留 Canvas 水果画法。
   const FRUITS = [
-    { name: "樱桃", radius: 17, color: "#ed6968", points: 1 },
-    { name: "草莓", radius: 21, color: "#f27d86", points: 3 },
-    { name: "葡萄", radius: 25, color: "#ab83c8", points: 6 },
-    { name: "橘子", radius: 30, color: "#ffad57", points: 10 },
-    { name: "柿子", radius: 35, color: "#f18a58", points: 15 },
-    { name: "苹果", radius: 41, color: "#dc6d5d", points: 21 },
-    { name: "梨子", radius: 47, color: "#c4d979", points: 28 },
-    { name: "桃子", radius: 54, color: "#f5aaa1", points: 36 },
-    { name: "菠萝", radius: 61, color: "#e9c35d", points: 45 },
-    { name: "椰子", radius: 69, color: "#b99a74", points: 55 },
-    { name: "西瓜", radius: 77, color: "#75b86d", points: 66 }
+    { name: "樱桃", radius: 17, color: "#ed6968", points: 1, image: "./assets/naiwa/neutral.png" },
+    { name: "草莓", radius: 21, color: "#f27d86", points: 3, image: "./assets/naiwa/downcast.png" },
+    { name: "葡萄", radius: 25, color: "#ab83c8", points: 6, image: "./assets/naiwa/thinking.png" },
+    { name: "橘子", radius: 30, color: "#ffad57", points: 10, image: "./assets/naiwa/laugh-close.png" },
+    { name: "柿子", radius: 35, color: "#f18a58", points: 15, image: "./assets/naiwa/tongue-foot.png" },
+    { name: "苹果", radius: 41, color: "#dc6d5d", points: 21, image: "./assets/naiwa/peace.png" },
+    { name: "梨子", radius: 47, color: "#c4d979", points: 28, image: "./assets/naiwa/cat-paws.png" },
+    { name: "桃子", radius: 54, color: "#f5aaa1", points: 36, image: "./assets/naiwa/bend.png" },
+    { name: "菠萝", radius: 61, color: "#e9c35d", points: 45, image: "./assets/naiwa/headstand.png" },
+    { name: "椰子", radius: 69, color: "#b99a74", points: 55, image: "./assets/naiwa/laugh-head.png" },
+    { name: "西瓜", radius: 77, color: "#75b86d", points: 66, image: "./assets/naiwa/laugh-open.png" }
   ];
   const WIDTH = 420;
   const HEIGHT = 610;
@@ -179,7 +179,18 @@
     target.globalAlpha = alpha;
     target.translate(x, y);
     if (image && image.complete && image.naturalWidth) {
-      target.drawImage(image, -radius, -radius, radius * 2, radius * 2);
+      target.beginPath();
+      target.arc(0, 0, radius - 1, 0, Math.PI * 2);
+      target.fillStyle = "#fff7dc";
+      target.fill();
+      target.clip();
+      const size = radius * 1.82;
+      target.drawImage(image, -size / 2, -size / 2, size, size);
+      target.beginPath();
+      target.arc(0, 0, radius - 1, 0, Math.PI * 2);
+      target.strokeStyle = fruit.color;
+      target.lineWidth = Math.max(1.5, radius * 0.07);
+      target.stroke();
       target.restore();
       return;
     }
