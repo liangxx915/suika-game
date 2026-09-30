@@ -46,6 +46,7 @@
   let lastFrame = 0;
   let accumulator = 0;
   let nextId = 1;
+  let activePointerId = null;
 
   function randomTier() { return Math.floor(Math.random() * 5); }
   function clamp(value, min, max) { return Math.max(min, Math.min(max, value)); }
@@ -54,6 +55,7 @@
   }
 
   function reset() {
+    clearPointer();
     fruits = [];
     score = 0;
     nextTier = randomTier();
@@ -76,6 +78,17 @@
     drawNext();
   }
 
+  function resolveBounds(body) {
+    const r = FRUITS[body.tier].radius;
+    if (body.x < r + 4) { body.x = r + 4; body.vx = Math.max(0, -body.vx * 0.22); }
+    if (body.x > WIDTH - r - 4) { body.x = WIDTH - r - 4; body.vx = Math.min(0, -body.vx * 0.22); }
+    if (body.y > FLOOR - r) {
+      body.y = FLOOR - r;
+      body.vy = Math.min(0, -body.vy * 0.12);
+      body.vx *= 0.97;
+    }
+  }
+
   function physicsStep() {
     for (const body of fruits) {
       body.age += STEP;
@@ -88,21 +101,13 @@
     const mergePairs = [];
     const claimed = new Set();
     for (let iteration = 0; iteration < 5; iteration++) {
-      for (const body of fruits) {
-        const r = FRUITS[body.tier].radius;
-        if (body.x < r + 4) { body.x = r + 4; body.vx = Math.max(0, -body.vx * 0.22); }
-        if (body.x > WIDTH - r - 4) { body.x = WIDTH - r - 4; body.vx = Math.min(0, -body.vx * 0.22); }
-        if (body.y > FLOOR - r) {
-          body.y = FLOOR - r;
-          body.vy = Math.min(0, -body.vy * 0.12);
-          body.vx *= 0.97;
-        }
-      }
+      for (const body of fruits) resolveBounds(body);
 
       for (let i = 0; i < fruits.length; i++) {
         const a = fruits[i];
         for (let j = i + 1; j < fruits.length; j++) {
           const b = fruits[j];
+          if (claimed.has(a.id) || claimed.has(b.id)) continue;
           const dx = b.x - a.x;
           const dy = b.y - a.y;
           const minDist = FRUITS[a.tier].radius + FRUITS[b.tier].radius;
@@ -115,9 +120,9 @@
             continue;
           }
 
-          const distance = Math.sqrt(distSq) || 0.001;
-          const nx = dx / distance;
-          const ny = dy / distance;
+          const distance = Math.sqrt(distSq);
+          const nx = distance > 0.0001 ? dx / distance : 1;
+          const ny = distance > 0.0001 ? dy / distance : 0;
           const overlap = minDist - distance;
           const massA = FRUITS[a.tier].radius ** 2;
           const massB = FRUITS[b.tier].radius ** 2;
@@ -138,6 +143,7 @@
         }
       }
     }
+    for (const body of fruits) if (!claimed.has(body.id)) resolveBounds(body);
 
     if (mergePairs.length) {
       const removed = new Set(mergePairs.flatMap(pair => pair.map(body => body.id)));
@@ -148,7 +154,7 @@
         fruits.push(newFruit(
           tier,
           clamp((a.x + b.x) / 2, radius + 4, WIDTH - radius - 4),
-          (a.y + b.y) / 2,
+          Math.min((a.y + b.y) / 2, FLOOR - radius),
           (a.vx + b.vx) / 2,
           Math.min((a.vy + b.vy) / 2, 80)
         ));
@@ -275,14 +281,38 @@
     requestAnimationFrame(frame);
   }
 
-  canvas.addEventListener("pointermove", event => {
+  function aimAt(event) {
     const bounds = canvas.getBoundingClientRect();
     aimX = (event.clientX - bounds.left) * WIDTH / bounds.width;
+  }
+
+  function clearPointer() {
+    if (activePointerId === null) return;
+    const pointerId = activePointerId;
+    activePointerId = null;
+    if (canvas.hasPointerCapture?.(pointerId)) canvas.releasePointerCapture(pointerId);
+  }
+
+  canvas.addEventListener("pointermove", event => {
+    if (activePointerId === event.pointerId || (activePointerId === null && event.pointerType === "mouse")) aimAt(event);
   });
   canvas.addEventListener("pointerdown", event => {
-    const bounds = canvas.getBoundingClientRect();
-    aimX = (event.clientX - bounds.left) * WIDTH / bounds.width;
+    if (gameOver || activePointerId !== null || (event.pointerType === "mouse" && event.button !== 0)) return;
+    activePointerId = event.pointerId;
+    aimAt(event);
+    canvas.setPointerCapture?.(event.pointerId);
+  });
+  canvas.addEventListener("pointerup", event => {
+    if (event.pointerId !== activePointerId) return;
+    aimAt(event);
+    clearPointer();
     drop();
+  });
+  canvas.addEventListener("pointercancel", event => {
+    if (event.pointerId === activePointerId) clearPointer();
+  });
+  canvas.addEventListener("lostpointercapture", event => {
+    if (event.pointerId === activePointerId) activePointerId = null;
   });
   document.getElementById("restart").addEventListener("click", reset);
   document.getElementById("play-again").addEventListener("click", reset);
