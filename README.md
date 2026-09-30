@@ -2,6 +2,8 @@
 
 一个可离线运行的浏览器小游戏。双击 `index.html` 即可开始，无需安装依赖或启动服务器。
 
+在线试玩：[https://liangxx915.github.io/suika-game/](https://liangxx915.github.io/suika-game/)
+
 手机试玩：让电脑和手机连接同一个 Wi-Fi，在电脑上运行 `node server.js`，然后在手机浏览器输入 `http://电脑的局域网 IP:8765/`。电脑关闭或服务停止后，手机链接就会失效。
 
 ## 玩法
